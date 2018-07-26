@@ -1,8 +1,10 @@
 digraph G {
     compound=true;
+    root=cluster0;
+    rankdir=TB;
     subgraph cluster0 {
         style=filled;
-		color=lightgrey;
+		color="#fdb863";
 		node [style=filled,color=white];
         label = "Local Development";
         
@@ -10,18 +12,21 @@ digraph G {
         dev_lint [label="Lint"];
         dev_pr [label="Pull Request"];
         dev_review [label="Team Review"];
-        dev_merge
+        dev_merge [label="Merge Specs"];
 
         dev_write -> dev_lint;
         dev_lint -> dev_write;
+        
         dev_write -> dev_pr;
         dev_pr -> dev_review;
+        
         dev_review -> dev_write [label="Changes Requested"];
         dev_review -> dev_merge [label="Changes Approved"];
     }
+
     subgraph cluster1 {
         style=filled;
-		color=green;
+		color="#fee0b6";
 		node [style=filled,color=white];
         label = "CI";
 
@@ -42,22 +47,19 @@ digraph G {
 
     subgraph cluster2 {
         style=filled;
-		color=blue;
+		color="#d8daeb";
 		node [style=filled,color=white];
         label = "Automated Spec Aggregator";
 
         dev_merge -> apis_clone [style=dotted]
-        apis_clone -> apis_normalize
+        apis_clone -> apis_normalize [label="Normalize OpenAPI (converted\nfrom other formats, upgraded\nto v3, fully resolved)"]
         
-        apis_normalize -> apis_docs
-        apis_normalize -> apis_mocs
-        apis_normalize -> apis_postman
-        apis_normalize -> apis_sdks
+        apis_normalize -> {apis_docs apis_mocs apis_postman apis_sdks}
      }
 
     subgraph cluster3 {
         style=filled;
-		color=yellow;
+		color="#b2abd2";
 		node [style=filled,color=white];
         label = "Client Integration";
 
@@ -74,7 +76,7 @@ digraph G {
 
     subgraph cluster4 {
         style=filled;
-		color=yellow;
+		color="#8073ac";
 		node [style=filled,color=white];
         label = "Write Code";
 
