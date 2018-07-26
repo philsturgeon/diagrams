@@ -1,18 +1,84 @@
 digraph G {
     compound=true;
     subgraph cluster0 {
-        a -> b;
-        a -> c;
-        b -> d;
-        c -> d;
+        style=filled;
+		color=lightgrey;
+		node [style=filled,color=white];
+        label = "Local Development";
+        
+        dev_write [label="Write"];
+        dev_lint [label="Lint"];
+        dev_pr [label="Pull Request"];
+        dev_review [label="Team Review"];
+        dev_merge
+
+        dev_write -> dev_lint;
+        dev_lint -> dev_write;
+        dev_write -> dev_pr;
+        dev_pr -> dev_review;
+        dev_review -> dev_write [label="Changes Requested"];
+        dev_review -> dev_merge [label="Changes Approved"];
     }
     subgraph cluster1 {
-        e -> g;
-        e -> f;
+        style=filled;
+		color=green;
+		node [style=filled,color=white];
+        label = "CI";
+
+        ci_build [label="CI Build"];
+        ci_lint [label="Lint"];
+        ci_contract_test [label="Contract Test"];
+
+        dev_pr -> ci_build [label="Trigger CI build"]
+
+        ci_build -> ci_lint [label="Run linter again"];
+        ci_lint -> ci_build [label="Pass/fail build"];
+
+        ci_build -> ci_contract_test [label="Spec validators in standard test suite"];
+        ci_contract_test -> ci_build [label="Pass/fail build"];
+
+        ci_build -> dev_pr [label="Status Checks Pass on PR"]
     }
-    b -> f [lhead=cluster1];
-    d -> e;
-    c -> g [ltail=cluster0, lhead=cluster1];
-    c -> e [ltail=cluster0];
-    d -> h;
+
+    subgraph cluster2 {
+        style=filled;
+		color=blue;
+		node [style=filled,color=white];
+        label = "Automated Spec Aggregator";
+
+        dev_merge -> apis_clone [style=dotted]
+        apis_clone -> apis_normalize
+        
+        apis_normalize -> apis_docs
+        apis_normalize -> apis_mocs
+        apis_normalize -> apis_postman
+        apis_normalize -> apis_sdks
+     }
+
+    subgraph cluster3 {
+        style=filled;
+		color=yellow;
+		node [style=filled,color=white];
+        label = "Client Integration";
+
+        apis_docs -> client_attempt [style=dotted]
+        apis_mocs -> client_attempt [style=dotted]
+        apis_postman -> client_attempt [style=dotted]
+        apis_sdks -> client_attempt [style=dotted]
+
+        client_attempt -> client_reject [label="Changes Requested"];
+        client_reject -> dev_write
+        
+        client_attempt -> client_approve
+    }
+
+    subgraph cluster4 {
+        style=filled;
+		color=yellow;
+		node [style=filled,color=white];
+        label = "Write Code";
+
+        client_approve -> gen_code
+        gen_code -> gen_business
+    }
 }
